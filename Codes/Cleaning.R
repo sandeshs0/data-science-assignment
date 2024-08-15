@@ -51,11 +51,6 @@ write_csv(cleaned_housing, 'D:/Academics/Fourth Semester/Data Science/Assignment
 
 broadband <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Broadband Speed/201805_fixed_pc_performance_r03.csv")
 
-head(broad_performance)                                                          
-summary(broad_performance)
-View(broad_performance)
-colnames(broad_performance)
-
 #Selecting Relevant Columns
 broadband_selected <- broadband %>%
   select("postcode_space",
@@ -235,25 +230,26 @@ selected_crime <- crime_combined %>%
   select(Month, `LSOA code`, `Crime type`, `Falls within`)
 
 #Renaming the columns
-colnames(selected_lsoa) = c('LSOA_code', 'street', 'counties', "postcode")
+colnames(selected_lsoa) = c('LSOA code', 'street', 'counties', "postcode")
 colnames(population) = c("postcode", "population")
-
+View(selected_crime)
+View(selected_lsoa)
 #Cleaning LSOA
 clean_lsoa <- selected_lsoa %>% 
-  filter(counties %in% c("Bristol,City of","Cornwall")) %>% 
+  filter(counties %in% c("Bristol, City of","Cornwall")) %>% 
   mutate(postcode=str_trim((substring(postcode,1,6))))
 
 #Checking for duplicates of lsoa codes
 any(duplicated(selected_crime$`LSOA code`))
-any(duplicated(clean_lsoa$`LSOA_code`))
+any(duplicated(clean_lsoa$`LSOA code`))
 
 #Since the duplicates are there, removing them
-clean_lsoa=unique(clean_lsoa,by="LSOA_code")
+clean_lsoa=unique(clean_lsoa,by="LSOA code")
 selected_crime=unique(selected_crime,by="LSOA code")
 
 #Final Cleaning and merging
 finalCrime= selected_crime %>% 
-  left_join(clean_lsoa, by=c("LSOA code"="LSOA_code"),relationship = "many-to-many") %>% 
+  left_join(clean_lsoa, by=("LSOA code"),relationship = "many-to-many") %>% 
   mutate(Year=str_trim(substring(Month,1,4))) %>% 
   mutate(Month=str_trim(substring(Month,6,7))) %>% 
   left_join(population,by="postcode") %>% 
@@ -261,89 +257,52 @@ finalCrime= selected_crime %>%
   na.omit()
 
 dim(finalCrime)
+dim(clean_lsoa)
 View(finalCrime)
+dim
+write_csv(finalCrime, "D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/crime_cleaned.csv")
 
 
+#--------------------------------SCHOOL-----------------------------
+bSchool21=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Bristol/2021-2022/801_ks4final.csv")
+bSchool22=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Bristol/2022-2023/801_ks4final.csv")
+cSchool21=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Cornwall/2021-2022/908_ks4final.csv")
+cSchool22=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Cornwall/2022-2023/908_ks4final.csv")
+  
+bSchool21 <- bSchool21 %>% 
+  select(SCHNAME,PCODE,ATT8SCR,TOWN) %>% 
+  mutate(YEAR=2021,COUNTY="Bristol")
 
+bSchool22 <- bSchool22 %>% 
+  select(SCHNAME,PCODE,ATT8SCR,TOWN) %>% 
+  mutate(YEAR=2022,COUNTY="Bristol")
 
+cSchool21 <- cSchool21 %>% 
+  select(SCHNAME,PCODE,ATT8SCR,TOWN) %>% 
+  mutate(YEAR=2021,COUNTY="Cornwall")
 
-#_______________
-#Removing spaces and converting to uppercase
-postcode_to_lsoa <- postcode_to_lsoa %>%
-  mutate(Postcode = toupper(gsub(" ", "", Postcode)))
+cSchool22 <- cSchool22 %>% 
+  select(SCHNAME,PCODE,ATT8SCR,TOWN) %>% 
+  mutate(YEAR=2022,COUNTY="Cornwall")
 
-na_count <- sapply(postcode_to_lsoa, function(x) sum(is.na(x)))
-print(na_count)
-dim(postcode_to_lsoa)
+#Combining
+bCombined=rbind(bSchool21,bSchool22)
+cCombined=rbind(cSchool21,cSchool22)
 
-#Removing rows with na values
-postcode_to_lsoa <- postcode_to_lsoa %>%
-  drop_na() %>% 
+View(bCombined)
+View(cCombined)
+
+schoolCombined=rbind(bCombined,cCombined)
+View(schoolCombined)
+
+schoolCombined <- schoolCombined %>% 
+  filter(ATT8SCR!="NE"&ATT8SCR!="SUPP") %>%
+  na.omit() %>% 
   distinct()
 
-dim(postcode_to_lsoa)
+dim(schoolCombined)
+View(schoolCombined)
 
-head(postcode_to_lsoa)
-summary(postcode_to_lsoa)
-str(postcode_to_lsoa_cleaned)
-View(postcode_to_lsoa)
+write_csv(schoolCombined,"D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/schoolcleaned.csv")
 
-#Saving the cleaned dataset
-write_csv(postcode_to_lsoa_cleaned, "D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/Postcodes to LSOA cleaned.csv")
-
-
-# BROADBAND SPEED
-library(dplyr)
-library(readr)
-library(tidyverse)
-
-broad_performance <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Broadband Speed/201805_fixed_pc_performance_r03.csv")
-
-head(broad_performance)                                                          
-summary(broad_performance)
-View(broad_performance)
-colnames(broad_performance)
-
-#Selecting the relevant columns from coverage dataset
-broad_performance_selected <- broad_performance %>%
-  select("postcode",
-         "Median download speed (Mbit/s)",
-         "Median upload speed (Mbit/s)",
-         "Average upload speed (Mbit/s)",
-         "Maximum upload speed (Mbit/s)",
-         "Average download speed (Mbit/s)",
-         "Maximum download speed (Mbit/s)",
-         )
-
-colnames(broad_performance)
-colnames(broad_performance_selected)
-
-#Checking for null values
-na_count <- sapply(broad_performance_selected, function(x) sum(is.na(x)))
-print(na_count)
-dim(broad_performance_selected)
-View(broad_performance_selected)
-
-#Removing redundent and null containing rows
-broad_performance_selected <- broad_performance_selected %>%
-  drop_na() %>% 
-  distinct()
-
-dim(broad_performance_selected)
-
-colnames(broad_performance_selected)
-
-#Renaming the columns for better varibale names
-broad_performance_selected <- broad_performance_selected %>%
-  rename(
-    Postcode = postcode,
-    MedianDownSpeed = `Median download speed (Mbit/s)`,
-    MedianUpSpeed = `Median upload speed (Mbit/s)`,
-    AvgUpSpeed = `Average upload speed (Mbit/s)`,
-    MaxUpSpeed = `Maximum upload speed (Mbit/s)`,
-    AvgDownSpeed = `Average download speed (Mbit/s)`,
-    MaxDownSpeed = `Maximum download speed (Mbit/s)`
-  )
-
-write_csv(broad_performance_selected, "D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/broadband_cleaned.csv")
 
