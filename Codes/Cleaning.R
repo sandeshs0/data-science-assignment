@@ -1,37 +1,19 @@
-# Load necessary libraries
+# libraries
 library(dplyr)
 library(readr)
 library(tidyverse)
-
-
-#_______________CLEANING HOUSING DATASET_________________________
-
-# Define column names based on the dataset documentation or your knowledge of the data
+# Defining column names 
 column_names <- c("Transaction_ID", "Price", "Transaction_Date", "Postcode", 
                   "Property_Type", "Old_New", "Duration", "PAON", "SAON", 
                   "Street", "Locality", "Town_City", "District", "County", 
                   "PPD_Category_Type", "Record_Status")
-
 # Loading the datasets with column names
 housing_2020 <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Housing/pp-2020.csv", col_names = column_names)
 housing_2021 <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Housing/pp-2021.csv", col_names = column_names)
 housing_2022 <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Housing/pp-2022.csv", col_names = column_names)
 housing_2023 <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Housing/pp-2023.csv", col_names = column_names)
-
 # Combining the datasets
 combined_housing = bind_rows(housing_2020, housing_2021, housing_2022, housing_2023)
-
-# Viewing the combined dataset to confirm the structure
-View(combined_housing)
-colnames(combined_housing)
-dim(combined_housing)
-
-
-#Checking Null Values
-na_summary <- sapply(cleaned_housing, function(x) sum(is.na(x)))
-print(na_summary)
-
-
 #Data Cleaning
 cleaned_housing <- combined_housing %>%
   filter(County %in% c('CORNWALL', 'CITY OF BRISTOL')) %>%
@@ -39,18 +21,13 @@ cleaned_housing <- combined_housing %>%
   select(Price, Postcode,Year,Town_City,County) %>% 
   na.omit() %>%
   distinct()
-  
-  
-View(cleaned_housing)
-colnames(cleaned_housing)
-dim(cleaned_housing)
 write_csv(cleaned_housing, 'D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/housing_cleaned.csv')
 
 
+
+
 #------------------CLEANING BROADBAND SPEED DATASET--------
-
 broadband <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Broadband Speed/201805_fixed_pc_performance_r03.csv")
-
 #Selecting Relevant Columns
 broadband_selected <- broadband %>%
   select("postcode_space",
@@ -61,11 +38,9 @@ broadband_selected <- broadband %>%
          "Average download speed (Mbit/s)",
          "Maximum download speed (Mbit/s)",
   )
-
 #Checking Null Values
 na_summary <- sapply(broadband_selected, function(x) sum(is.na(x)))
 print(na_summary)
-
 #Cleaning
 broadband_clean <-broadband_selected %>% 
   rename(
@@ -79,15 +54,9 @@ broadband_clean <-broadband_selected %>%
   ) %>% 
   na.omit() %>% 
   distinct()
-
 #Checking for null values after Cleaning
 na_summary_clean <- sapply(broadband_clean, function(x) sum(is.na(x)))
 print(na_summary_clean)
-
-View(broadband_clean)
-
-#Joining with Housing Data with common PostCode Column
-
 #Selecting only 3 rows from housing
 housing_selected <- cleaned_housing %>% 
   select(Postcode,Town_City,County)
@@ -104,8 +73,6 @@ dim(broadband_W_housing)
 #Removing redundent rows
 broadband_final <- broadband_W_housing %>%
   distinct()
-
-
 dim(broadband_final)
 View(broadband_final)
 
@@ -218,7 +185,6 @@ crime_combined <- crime_combined %>%
 
 
 #POST CODE TO LSOA
-# Load necessary libraries
 
 postcode_to_lsoa <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Postcode to LSOA.csv")
 population <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Population.csv")

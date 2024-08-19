@@ -133,7 +133,7 @@ ggplot(bistrol_speed, aes(x = Town_City, y = Speed, fill = SpeedType)) +
 crime_data = read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/crime_cleaned.csv")
 View(crime_data)
 colnames(crime_data)
-
+dim(crime_data)
 
 # Vehicle Crime per 10000 people in April 2022
 vehicleCrime <- crime_data %>%
@@ -182,6 +182,62 @@ ggplot(robbery_data,aes(x = "", y = percentage, fill = as.factor(Month))) +
             position = position_stack(vjust = 0.5)) +
   labs(title = "Robberies by Month in 2023", fill = "Month") +
   theme_minimal()
+
+
+#Drugs
+
+drugCrime <- subset(crime, `Crime type` == "Drugs" & Year == 2023 & counties %in% c("Bristol, City of", "Cornwall"))
+
+# Create the boxplot
+
+ggplot(drugCrime, aes(x = counties, y = population / 10000, fill = counties)) + 
+  geom_boxplot() +
+  labs(title = "Drug Offence Rate per 10,000 People in 2023",
+       x = "County",
+       y = "Drug Offence Rate (per 10,000 people)")+
+  theme_minimal()
+
+
+
+# Filtering data for drug offences
+drug2023 = crime %>%
+  filter(`Crime type` == "Drugs" & Year == "2023")
+
+# For Cornwall
+cornDrug <- drugCrime %>%
+  filter(counties == "Cornwall") %>%
+  distinct(`LSOA code`, .keep_all = TRUE) %>%
+  summarise(total_population = sum(population),
+            total_drug_offences = n())
+cornwall_data
+
+
+# Summarize data for Bristol
+bristolDrug <- drugCrime %>%
+  filter(counties == "Bristol, City of") %>%
+  distinct(`LSOA code`, .keep_all = TRUE) %>%
+  summarise(total_population = sum(population),
+            total_drug_offences = n())
+
+cornDrug <- cornDrug %>%
+  mutate(offence_rate = (total_drug_offences / total_population) * 10000)
+
+bristolDrug <- bristolDrug %>%
+  mutate(offence_rate = (total_drug_offences / total_population) * 10000)
+
+
+combined_data <- bind_rows(
+  cornDrug %>% mutate(county = "Cornwall"),
+  bristolDrug %>% mutate(county = "Bristol, City of")
+)
+
+ggplot(combined_data, aes(x = county, y = offence_rate, fill = county)) +
+  geom_boxplot() +
+  labs(title = "Distribution of Drug Offence Rates (2023)",
+       x = "Location",
+       y = "Offence Rate (per 10,000)") +
+  theme_minimal()
+
 
 #_____________________Schools
 
