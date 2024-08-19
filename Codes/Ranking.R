@@ -1,88 +1,126 @@
 library(tidyverse)
 
-crimeData=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/crime_cleaned.csv")
-schoolData=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/schoolcleaned.csv")
-housingData=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/housing_cleaned.csv")
-speedData=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/broadband_cleaned.csv")
+#Importing Libraries
+crime=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/crime_cleaned.csv")
+school=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/schoolcleaned.csv")
+housingPrice=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/housing_cleaned.csv")
+broadband=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/broadband_cleaned.csv")
 
-speedSelected= speedData %>%
+dim(crime)
+
+#Selecting Relevent Rows from Broadband
+selected_broadband= broadband %>%
   group_by(Town_City) %>%
   summarise(
-     avgUpload= mean(AvgUpSpeed),
-    avgDownload = mean(AvgDownSpeed)
-  )
-speedSelected = speedSelected %>% 
-  mutate(Town =  str_trim(toupper(Town_City)))%>%
-  select(Town, avgUpload,avgDownload)
+    avg_upl_speed = mean(AvgUpSpeed),
+    avg_down_speed = mean(AvgDownSpeed)
+  )%>%
+  mutate(TOWN =  str_trim(toupper(Town_City)))%>%
+  select(TOWN, avg_upl_speed, avg_down_speed)
 
-
-att8= school %>%
+selected_attainment8= school %>%
   group_by(TOWN) %>%
-  summarise(av_att8 = mean(ATT8SCR))%>%
-  select(TOWN, av_att8)%>%
+  summarise(avgAtt8 = mean(ATT8SCR))%>%
+  select(TOWN, avgAtt8)%>%
   distinct()%>%
   mutate(TOWN= str_trim(toupper(TOWN)))
 
-house_price = housing %>%
+selected_house = housingPrice %>%
   filter(Year == 2023)%>%
-  mutate(TOWN =  str_trim(toupper(`Town/City`)))%>%
+  mutate(TOWN =  str_trim(toupper(Town_City)))%>%
   group_by(TOWN) %>%
-  summarise(avg_price = mean(Price))%>%
-  select(avg_price, TOWN)%>%
+  summarise(avgPrice = mean(Price))%>%
+  select(avgPrice, TOWN)%>%
   na.omit()%>%
   distinct()
 
-town = housing %>%
+town = housingPrice %>%
   mutate(postcode  = str_trim(substring(Postcode,  1, 6))) %>%
-  mutate(TOWN =  str_trim(toupper(`Town/City`)))%>%
+  mutate(TOWN =  str_trim(toupper(Town_City)))%>%
   select(postcode, TOWN)%>%
   distinct()
 
-sel_crime = crime %>%
+selected_crime = crime %>%
   filter(Year==2023)%>%
   group_by(postcode)%>%
   summarise(crimeno =n())%>%
   arrange(desc(crimeno))%>%
   select(postcode, crimeno)
 
-final_crime = sel_crime%>%
+final_crime = selected_crime%>%
   left_join(town, by= "postcode")%>%
   na.omit()%>%
   distinct()
 
-last_crime = final_crime%>%
+final_crime = final_crime%>%
   group_by(TOWN)%>%
   summarise(crimerate = sum(crimeno))%>%
   select(TOWN, crimerate)
 
-view(house_price)
-view(att8)
-view(sel_speed)
-view(last_crime)
-
-ranking_data = house_price %>%
-  left_join(att8, by = "TOWN") %>%  
-  left_join(sel_speed, by = "TOWN") %>%  
-  left_join(last_crime, by = "TOWN") %>%
+ranking = selected_house %>%
+  left_join(selected_attainment8, by = "TOWN") %>%  
+  left_join(selected_broadband, by = "TOWN") %>%  
+  left_join(final_crime, by = "TOWN") %>%
   na.omit()
-view(ranking_data)
+view(ranking)
 
-rankk = ranking_data %>%
-  # Rank each criterion: lower rank for better values
-  mutate(
-    rank_avg_price = rank(avg_price, ties.method = "min"),
-    rank_avg_down_speed = rank(-avg_down_speed, ties.method = "min"),
-    rank_avg_upl_speed = rank(-avg_upl_speed, ties.method = "min"),
-    rank_av_att8 = rank(-av_att8, ties.method = "min"),
-    rank_crimerate = rank(crimerate, ties.method = "min")
-  ) %>%
-  # Combine the ranks into a final score
-  mutate(
-    total_rank = rank_avg_price + rank_avg_down_speed + 
-      rank_avg_upl_speed + rank_av_att8 + rank_crimerate
-  ) %>%
-  # Order the towns based on the final score
-  arrange(total_rank)
 
-# View the final ranked dataset
-view(rankk)
+# Calculating the minimum and Maximum for each column
+Extremes <- ranking_Points %>%
+  summarise(
+    minDownSpeed= min(avg_down_speed),
+    maxDownSpeed = max(avg_down_speed),
+    minUpSpeed = min(avg_upl_speed),
+    maxUpSpeed = max(avg_upl_speed),
+    minAtt8 = min(avgAtt8),
+    maxAtt8 = max(avgAtt8),
+    minHousingPrice = min(avgPrice),
+    maxHousingPrice = max(avgPrice),
+    minCrimeRate = min(crimerate),
+    maxCrimeRate = max(crimerate)
+  )
+
+# Normalizing and calculating the final points
+finalRanking <- ranking_Points %>%
+  mutate(
+    normDownSpeed = (avg_down_speed - Extremes$minDownSpeed) / (Extremes$maxDownSpeed - Extremes$minDownSpeed),
+    normUpSpeed = (avg_upl_speed - Extremes$minUpSpeed) / (Extremes$maxUpSpeed - Extremes$minUpSpeed),
+    normAtt8 = (avgAtt8 - Extremes$minAtt8) / (Extremes$maxAtt8 - Extremes$minAtt8),
+    normHousingPrice = 1 - (avgPrice - Extremes$minHousingPrice) / (Extremes$maxHousingPrice - Extremes$minHousingPrice),
+    normCrimeRate = 1 - (crimerate - Extremes$minCrimeRate) / (Extremes$maxCrimeRate - Extremes$minCrimeRate),
+    finalPoints = normDownSpeed + normUpSpeed + normAtt8 + normHousingPrice + normCrimeRate
+  )
+
+# View the data with the final score
+finalRanking= finalRanking%>%
+  arrange(desc(finalPoints))
+
+View(finalRanking)
+write_csv(finalRanking, "D:/Academics/Fourth Semester/Data Science/Assignment/ranking.csv")
+
+houserank = finalRanking %>%
+  select(TOWN, avgPrice, normHousingPrice)%>%
+  arrange(desc(normHousingPrice))
+
+view(houserank)  
+
+crimerank = finalRanking %>%
+  select(TOWN, normCrimeRate, crimerate) %>%
+  arrange(desc(normCrimeRate))
+view(crimerank)
+
+schoolrank = finalRanking %>%
+  select(TOWN, avgAtt8, normAtt8)%>%
+  arrange(desc(normAtt8))
+view(schoolrank)
+
+broadbandrank = finalRanking %>%
+  select(TOWN, avg_down_speed, normDownSpeed)%>%
+  arrange(desc(normDownSpeed))
+
+view(broadbandrank)
+
+final_rank = finalRanking  %>%
+  select(TOWN, avgPrice, crimerate, avgAtt8, avg_down_speed, finalPoints) %>%
+  arrange(desc(finalPoints))
+view(final_rank)

@@ -24,6 +24,8 @@ ggplot(data = housing_speed, aes(x = Price, y = AvgDownSpeed)) +
   labs(title = "House Prices vs Average Download Speed", 
        x = "House Price", 
        y = "Average Download Speed (Mbit/s)") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
   theme_minimal()
 
 #Linear Model for Housing Price Vs Drug Offence
@@ -44,16 +46,16 @@ housing_drugs <- housingPrice23 %>%
   distinct() %>% 
   na.omit()
 
-ggplot(data = housing_drugs, aes(x = DrugRate, y = Price)) +
+ggplot(data = housing_drugs, aes(x = Price, y = DrugRate)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE, color = "blue") +
   labs(title = "Housing Price vs Drug Rates in 2023", 
-       x = "Drug Rates", 
-       y = "House Price") +
+       x = "House Price", 
+       y = "Drug Rate") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
   theme_minimal()
   
-
-
 #Linear Model for Average Download Speed Vs Attainment 8 Score
 school <- schoolData %>% 
   filter(YEAR==2022) %>% 
@@ -68,6 +70,8 @@ ggplot(data = school_broadband, aes(x = AvgDownSpeed, y = ATT8SCR)) +
   labs(title = "Average download speed VS Attainment 8 Score", 
        x = "Average download speed", 
        y = "Attainment 8 Score") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
   theme_minimal()
 
 
@@ -80,6 +84,8 @@ ggplot(data = school_housing, aes(x = ATT8SCR, y = Price)) +
   labs(title = "Average attainment 8 score vs Housing Price", 
        x = "ATT8SCR", 
        y = "Price") +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) +
   theme_minimal()
 
 

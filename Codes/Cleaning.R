@@ -23,9 +23,6 @@ cleaned_housing <- combined_housing %>%
   distinct()
 write_csv(cleaned_housing, 'D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/housing_cleaned.csv')
 
-
-
-
 #------------------CLEANING BROADBAND SPEED DATASET--------
 broadband <- read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/Broadband Speed/201805_fixed_pc_performance_r03.csv")
 #Selecting Relevant Columns
@@ -228,13 +225,16 @@ View(finalCrime)
 dim
 write_csv(finalCrime, "D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/crime_cleaned.csv")
 
-
 #--------------------------------SCHOOL-----------------------------
 bSchool21=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Bristol/2021-2022/801_ks4final.csv")
 bSchool22=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Bristol/2022-2023/801_ks4final.csv")
 cSchool21=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Cornwall/2021-2022/908_ks4final.csv")
 cSchool22=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Obtained Datasets/School/Cornwall/2022-2023/908_ks4final.csv")
-  
+
+view(bSchool21)
+head(bSchool21)
+view(cSchool21)
+
 bSchool21 <- bSchool21 %>% 
   select(SCHNAME,PCODE,ATT8SCR,TOWN) %>% 
   mutate(YEAR=2021,COUNTY="Bristol")

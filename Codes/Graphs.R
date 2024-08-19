@@ -30,15 +30,15 @@ ggplot(housing_2023,aes(x=County,y=average_house_price_2023,fill=County))+
   ggtitle("Average Housing Price in 2023")+
   ylab("Average Price")+
   xlab("County")+
+  scale_y_continuous(labels = scales::comma) +
   theme_minimal()
 
 #Box Plot
-ggplot(housing_data %>% 
-         filter(Year==2023),aes(x=County,y=Price,fill=County))+
-  geom_boxplot()+
-  ggtitle("Average Housing Price in Year 2023")+
-  ylab("Price")+
-  xlab("County")
+ggplot(data = housing_2023, aes(x = County, y = average_house_price_2023, fill = County)) +
+  geom_boxplot() +
+  labs(title = "Boxplot for Average House Price in Year 2023", x = "County", y = "Price") +
+  scale_y_continuous(limits = c(0, 300000), labels = scales::comma) +
+  theme_minimal()
 
 #Line Chart
 housing_20to23 <- housing_data %>% 
@@ -47,12 +47,15 @@ average_per_year <- housing_20to23 %>%
   group_by(Year, County) %>% 
   summarise(Average_Price = mean(Price))
 
+
 ggplot(average_price_per_year, aes(x = Year, y = Average_Price, color = County)) +
   geom_line() +
   geom_point() +
   ggtitle("Line Chart of Average House Price from 2020 to 2023") +
   xlab("Year") +
-  ylab("Average Price")
+  ylab("Average Price")+
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = scales::comma) 
 
 #housing by years
 housing_by_year = housing_data %>%
@@ -69,7 +72,10 @@ ggplot(housing_data_2023, aes(x = Town_City, y = avg_price, fill = Town_City)) +
   ggtitle("Average House Price by Town in 2023") +
   ylab("Average Price") +
   xlab("City") +
-  theme_minimal()
+  scale_y_continuous(labels = scales::comma) +
+  theme_minimal()+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
 
 #-----------Broadband Data
 broadband=read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/broadband_cleaned.csv")
@@ -243,6 +249,7 @@ ggplot(combined_data, aes(x = county, y = offence_rate, fill = county)) +
 
 school_data= read_csv("D:/Academics/Fourth Semester/Data Science/Assignment/Cleaned Datasets/schoolcleaned.csv")
 
+head(school_data)
 school_filtered= school_data %>% 
   filter(YEAR==2022)
 
@@ -271,12 +278,14 @@ ggplot(bristol_21, aes(x = SCHNAME, y = ATT8SCR, group = 1)) +
 cornwall_21=school_data %>% 
   filter(YEAR==2021) %>% 
   filter(COUNTY=="Cornwall")
+colnames(cornwall_21)
+head(cornwall_21)
 
-ggplot(cornwall_21, aes(x = SCHNAME, y = ATT8SCR, group = 1)) +
+ggplot(cornwall_21, aes(x = TOWN, y = ATT8SCR, group = 1)) +
   geom_line(color = "red") +
   geom_point() +
   labs(title = "Average Attainment 8 Score in 2021-2022 in Cornwall",
-       x = "School Name",
+       x = "Town",
        y = "Average Attainment 8 Score") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
